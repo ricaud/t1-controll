@@ -1,0 +1,13 @@
+#[cfg(feature = "gui")]
+pub mod app;
+pub mod config;
+pub mod effects;
+pub mod fan;
+pub mod fan_backend;
+pub mod fan_service;
+pub mod model;
+pub mod openrgb;
+pub mod presets;
+#[cfg(feature = "gui")]
+pub mod preview;
+pub mod rgb_service;

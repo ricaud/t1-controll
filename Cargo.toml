@@ -1,0 +1,34 @@
+[package]
+name = "t1-control"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+description = "Case-specific RGB and fan control for the FormD/NCASE T1 v2.5 with a Fractal Lumen S24"
+license = "MIT"
+
+[features]
+default = ["gui"]
+gui = ["dep:eframe", "dep:image"]
+
+[[bin]]
+name = "t1-control"
+path = "src/main.rs"
+
+[lib]
+name = "t1_control"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+directories = "6"
+image = { version = "0.25", default-features = false, features = ["png"], optional = true }
+eframe = { version = "=0.33.3", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"], optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = "thin"
+codegen-units = 1
+strip = true
+panic = "abort"
