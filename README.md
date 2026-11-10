@@ -147,12 +147,12 @@ The library (`src/lib.rs`) contains the testable core without GUI dependencies:
 
 The GUI feature (`gui`, enabled by default) adds `app` and `preview`. Core tests run with `--no-default-features`, so CI does not need a display or GUI libraries.
 
-## GitLab CI
+## GitHub Actions
 
-`.gitlab-ci.yml` defines:
+`.github/workflows/ci.yml` runs on pushes to `master`, pull requests, tags, and manual dispatch:
 
-- **test** on `rust:1-bookworm`: `cargo test --lib --no-default-features` and a core `cargo check`.
-- **package:windows** on `saas-windows-medium-amd64`: installs a pinned stable Rust via rustup if needed, runs the core tests, builds the release GUI, checks the PowerShell bridge syntax, and packages the executable.
+- **Core tests (Linux)** on `ubuntu-latest`: `cargo test --lib --no-default-features` plus `cargo clippy --lib --no-default-features -- -D warnings`.
+- **Windows build** on `windows-latest`: core tests, release GUI build, PowerShell bridge syntax check, and packaging.
 
 Artifact:
 
@@ -163,9 +163,7 @@ dist/t1-control-windows-x64.zip
   LICENSE
 ```
 
-The zip is available from the pipeline **Artifacts** panel and the job page for 30 days. It is unsigned, so Windows SmartScreen may warn on first launch.
-
-> **Repository note:** this checkout's `origin` is `git@github.com:ricaud/t1-controll.git`. GitLab CI only runs when the project is hosted on GitLab. Push or mirror the repository to GitLab (or change the remote) for the pipeline to produce the Windows artifact.
+Download it from the workflow run's **Artifacts** section (retained 30 days). It is unsigned, so Windows SmartScreen may warn on first launch.
 
 ## Validation
 

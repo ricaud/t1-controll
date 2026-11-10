@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Core tests (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Test core
+        run: cargo test --lib --no-default-features --locked
+      - name: Clippy
+        run: cargo clippy --lib --no-default-features --locked -- -D warnings
+
+  windows:
+    name: Windows build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Test core
+        run: cargo test --lib --no-default-features --locked
+      - name: Build release GUI
+        run: cargo build --release --locked
+      - name: Validate PowerShell fan bridge
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PWD 'resources/fanbridge/FanBridge.ps1'),
+            [ref]$tokens,
+            [ref]$parseErrors
+          ) | Out-Null
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item target\release\t1-control.exe dist\t1-control-windows-x64.exe
+          Copy-Item -Path README.md, LICENSE -Destination dist
+          Compress-Archive -Path dist\t1-control-windows-x64.exe, dist\README.md, dist\LICENSE -DestinationPath dist\t1-control-windows-x64.zip -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: t1-control-windows-x64
+          path: dist/t1-control-windows-x64.zip
+          if-no-files-found: error
+          retention-days: 30
